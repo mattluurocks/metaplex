@@ -69,7 +69,7 @@ export const WalletModal: FC = () => {
         M
       </div>
 
-      <h2>{selected ? 'Change provider' : 'Welcome to Metaplex'}</h2>
+      <h2>{selected ? 'Change provider' : 'Welcome to Matts NFT marketplace'}</h2>
       <p>
         {selected
           ? 'Feel free to switch wallet provider'
