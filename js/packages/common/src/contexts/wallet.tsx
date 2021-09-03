@@ -56,8 +56,8 @@ export const WalletModal: FC = () => {
           background:
             'linear-gradient(180deg, #D329FC 0%, #8F6DDE 49.48%, #19E6AD 100%)',
           borderRadius: 36,
-          width: 50,
-          height: 50,
+          width: 150,
+          height: 150,
           textAlign: 'center',
           verticalAlign: 'middle',
           fontWeight: 700,
@@ -70,6 +70,7 @@ export const WalletModal: FC = () => {
       </div>
 
       <h2>{selected ? 'Change provider' : 'Welcome to Matts NFT marketplace'}</h2>
+
       <p>
         {selected
           ? 'Feel free to switch wallet provider'
