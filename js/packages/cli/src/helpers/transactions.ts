@@ -1,30 +1,25 @@
-// const createPaymentTransaction = () => {
-//   // TODO:
-//   const tx = new Transaction();
-//   tx.add(SystemProgram.transfer({
-//     fromPubkey: walletKey.publicKey,
-//     toPubkey: PAYMENT_WALLET,
-//     lamports: storageCost,
-//   }));
-
 import {
-  Connection,
-  Keypair,
-  TransactionInstruction,
+  Blockhash,
   Commitment,
-  Transaction,
+  Connection,
+  FeeCalculator,
+  Keypair,
   RpcResponseAndContext,
   SignatureStatus,
   SimulatedTransactionResponse,
+  Transaction,
+  TransactionInstruction,
   TransactionSignature,
-  FeeCalculator,
-  Blockhash,
 } from '@solana/web3.js';
+import { getUnixTs, sleep } from './various';
+import { DEFAULT_TIMEOUT } from './constants';
+import log from "loglevel";
 
 interface BlockhashAndFeeCalculator {
   blockhash: Blockhash;
   feeCalculator: FeeCalculator;
 }
+
 export const sendTransactionWithRetryWithKeypair = async (
   connection: Connection,
   wallet: Keypair,
@@ -35,7 +30,7 @@ export const sendTransactionWithRetryWithKeypair = async (
   block?: BlockhashAndFeeCalculator,
   beforeSend?: () => void,
 ) => {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   instructions.forEach(instruction => transaction.add(instruction));
   transaction.recentBlockhash = (
     block || (await connection.getRecentBlockhash(commitment))
@@ -69,11 +64,6 @@ export const sendTransactionWithRetryWithKeypair = async (
   return { txid, slot };
 };
 
-export const getUnixTs = () => {
-  return new Date().getTime() / 1000;
-};
-const DEFAULT_TIMEOUT = 15000;
-
 export async function sendSignedTransaction({
   signedTransaction,
   connection,
@@ -96,7 +86,7 @@ export async function sendSignedTransaction({
     },
   );
 
-  console.log('Started awaiting confirmation for', txid);
+  log.debug('Started awaiting confirmation for', txid);
 
   let done = false;
   (async () => {
@@ -120,13 +110,13 @@ export async function sendSignedTransaction({
       throw new Error('Timed out awaiting confirmation on transaction');
 
     if (confirmation.err) {
-      console.error(confirmation.err);
+      log.error(confirmation.err);
       throw new Error('Transaction failed: Custom instruction error');
     }
 
     slot = confirmation?.slot || 0;
   } catch (err) {
-    console.error('Timeout Error caught', err);
+    log.error('Timeout Error caught', err);
     if (err.timeout) {
       throw new Error('Timed out awaiting confirmation on transaction');
     }
@@ -135,7 +125,9 @@ export async function sendSignedTransaction({
       simulateResult = (
         await simulateTransaction(connection, signedTransaction, 'single')
       ).value;
-    } catch (e) {}
+    } catch (e) {
+      log.error('Simulate Transaction error', e);
+    }
     if (simulateResult && simulateResult.err) {
       if (simulateResult.logs) {
         for (let i = simulateResult.logs.length - 1; i >= 0; --i) {
@@ -154,7 +146,7 @@ export async function sendSignedTransaction({
     done = true;
   }
 
-  console.log('Latency', txid, getUnixTs() - startTime);
+  log.debug('Latency', txid, getUnixTs() - startTime);
   return { txid, slot };
 }
 
@@ -198,13 +190,14 @@ async function awaitTransactionSignatureConfirmation(
     err: null,
   };
   let subId = 0;
+  // eslint-disable-next-line no-async-promise-executor
   status = await new Promise(async (resolve, reject) => {
     setTimeout(() => {
       if (done) {
         return;
       }
       done = true;
-      console.log('Rejecting for timeout...');
+      log.warn('Rejecting for timeout...');
       reject({ timeout: true });
     }, timeout);
     try {
@@ -218,10 +211,10 @@ async function awaitTransactionSignatureConfirmation(
             confirmations: 0,
           };
           if (result.err) {
-            console.log('Rejected via websocket', result.err);
+            log.warn('Rejected via websocket', result.err);
             reject(status);
           } else {
-            console.log('Resolved via websocket', result);
+            log.debug('Resolved via websocket', result);
             resolve(status);
           }
         },
@@ -229,7 +222,7 @@ async function awaitTransactionSignatureConfirmation(
       );
     } catch (e) {
       done = true;
-      console.error('WS error in setup', txid, e);
+      log.error('WS error in setup', txid, e);
     }
     while (!done && queryStatus) {
       // eslint-disable-next-line no-loop-func
@@ -241,22 +234,22 @@ async function awaitTransactionSignatureConfirmation(
           status = signatureStatuses && signatureStatuses.value[0];
           if (!done) {
             if (!status) {
-              console.log('REST null result for', txid, status);
+              log.debug('REST null result for', txid, status);
             } else if (status.err) {
-              console.log('REST error for', txid, status);
+              log.error('REST error for', txid, status);
               done = true;
               reject(status.err);
             } else if (!status.confirmations) {
-              console.log('REST no confirmations for', txid, status);
+              log.error('REST no confirmations for', txid, status);
             } else {
-              console.log('REST confirmation for', txid, status);
+              log.info('REST confirmation for', txid, status);
               done = true;
               resolve(status);
             }
           }
         } catch (e) {
           if (!done) {
-            console.log('REST connection error: txid', txid, e);
+            log.error('REST connection error: txid', txid, e);
           }
         }
       })();
@@ -268,50 +261,6 @@ async function awaitTransactionSignatureConfirmation(
   if (connection._signatureSubscriptions[subId])
     connection.removeSignatureListener(subId);
   done = true;
-  console.log('Returning status', status);
+  log.debug('Returning status', status);
   return status;
-}
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export function fromUTF8Array(data: number[]) {
-  // array of bytes
-  let str = '',
-    i;
-
-  for (i = 0; i < data.length; i++) {
-    const value = data[i];
-
-    if (value < 0x80) {
-      str += String.fromCharCode(value);
-    } else if (value > 0xbf && value < 0xe0) {
-      str += String.fromCharCode(((value & 0x1f) << 6) | (data[i + 1] & 0x3f));
-      i += 1;
-    } else if (value > 0xdf && value < 0xf0) {
-      str += String.fromCharCode(
-        ((value & 0x0f) << 12) |
-          ((data[i + 1] & 0x3f) << 6) |
-          (data[i + 2] & 0x3f),
-      );
-      i += 2;
-    } else {
-      // surrogate pair
-      const charCode =
-        (((value & 0x07) << 18) |
-          ((data[i + 1] & 0x3f) << 12) |
-          ((data[i + 2] & 0x3f) << 6) |
-          (data[i + 3] & 0x3f)) -
-        0x010000;
-
-      str += String.fromCharCode(
-        (charCode >> 10) | 0xd800,
-        (charCode & 0x03ff) | 0xdc00,
-      );
-      i += 3;
-    }
-  }
-
-  return str;
 }
