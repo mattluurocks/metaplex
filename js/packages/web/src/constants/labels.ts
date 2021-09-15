@@ -6,7 +6,7 @@ export const LABELS = {
   ACCOUNT_FUNDED: 'Account funded.',
   MENU_HOME: 'Home',
   MENU_FAUCET: 'Faucet',
-  APP_TITLE: 'NFTs by Matt',
+  APP_TITLE: 'NFTs by TW_Digital_Art',
   CONNECT_BUTTON: 'Connect',
   WALLET_TOOLTIP: 'Wallet public key',
   WALLET_BALANCE: 'Wallet balance',

@@ -40,8 +40,8 @@ export type ENV =
 
 export const ENDPOINTS = [
   {
-    name: 'mainnet-beta' as ENV,
-    endpoint: 'https://api.metaplex.solana.com/',
+    name: 'mainnet-beta (Solana)' as ENV,
+    endpoint: 'https://api.metaplex.solana.com',
     ChainId: ChainId.MainnetBeta,
   },
   {
