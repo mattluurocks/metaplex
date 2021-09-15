@@ -84,7 +84,7 @@ const MetaplexMenu = () => {
             <Menu>
               <Menu.Item>
                 <Link to={`/`}>
-                  <Button className="app-btn">Explore</Button>
+                  <Button className="app-btn">Auctions</Button>
                 </Link>
               </Menu.Item>
               <Menu.Item>
@@ -95,9 +95,16 @@ const MetaplexMenu = () => {
                 </Link>
               </Menu.Item>
               <Menu.Item>
-                <Link to={`/artists`}>
-                  <Button className="app-btn">Creators</Button>
+                <Link to={`/artists/FCpetEsYrhY8FVdPJtCVkYuC2f1wMNNFgV3avLyyJ8Bs`}>
+                  <Button className="app-btn">Creator</Button>
                 </Link>
+              </Menu.Item>
+
+              <Menu.Item>
+                <a href="https://twitter.com/twdigitalart?ref_src=twsrc%5Etfw"><Button className="app-btn">Twitter</Button></a>
+              </Menu.Item>
+              <Menu.Item>
+                <a href="https://www.instagram.com/twdigitalart/"><Button className="app-btn">Instagram</Button></a>
               </Menu.Item>
             </Menu>
           }
