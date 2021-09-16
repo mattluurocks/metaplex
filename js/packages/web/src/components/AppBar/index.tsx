@@ -63,8 +63,9 @@ const DefaultActions = ({ vertical = false }: { vertical?: boolean }) => {
       <Link to={`/artists/FCpetEsYrhY8FVdPJtCVkYuC2f1wMNNFgV3avLyyJ8Bs`}>
         <Button className="app-btn">Creator</Button>
       </Link>
-      <a href="https://twitter.com/twdigitalart?ref_src=twsrc%5Etfw"><Button className="app-btn">Twitter</Button></a>
-      <a href="https://www.instagram.com/twdigitalart/"><Button className="app-btn">Instagram</Button></a>
+      <a href="https://twitter.com/twdigitalart?ref_src=twsrc%5Etfw"><Button className="app-btn"><img src="twitter_logo.png" alt="Twitter" width="40" height="40"/></Button></a>
+      <a href="https://www.instagram.com/twdigitalart/"><Button className="app-btn"><img src="ig_logo.png" alt="Instagram" width="40" height="40"/></Button></a>
+      <a href="https://discord.gg/VCKpndUvpV"><Button className="app-btn"><img src="discord_logo.png" alt="Discord" width="40" height="40"/></Button></a>
     </div>
   );
 };
@@ -105,6 +106,9 @@ const MetaplexMenu = () => {
               </Menu.Item>
               <Menu.Item>
                 <a href="https://www.instagram.com/twdigitalart/"><Button className="app-btn">Instagram</Button></a>
+              </Menu.Item>
+              <Menu.Item>
+                <a href="https://discord.gg/VCKpndUvpV"><Button className="app-btn">Discord</Button></a>
               </Menu.Item>
             </Menu>
           }
