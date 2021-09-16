@@ -66,7 +66,7 @@ export const WalletModal: FC = () => {
           marginBottom: 10,
         }}
       >
-        M
+        TWDA
       </div>
 
       <h2>{selected ? 'Change provider' : 'Welcome to TW Digital Art'}</h2>
